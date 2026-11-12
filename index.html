@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Decimal → Binary Converter</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+  }
+  .card {
+    background: #1e293b;
+    padding: 2rem;
+    border-radius: 16px;
+    width: min(420px, 92vw);
+    box-shadow: 0 20px 40px rgba(0,0,0,.4);
+  }
+  h1 {
+    margin: 0 0 1.25rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+  label {
+    display: block;
+    font-size: .8rem;
+    color: #94a3b8;
+    margin-bottom: .4rem;
+  }
+  input {
+    width: 100%;
+    padding: .85rem 1rem;
+    font-size: 1.1rem;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    background: #0f172a;
+    border: 2px solid #334155;
+    border-radius: 10px;
+    color: #e2e8f0;
+    outline: none;
+    transition: border-color .15s;
+  }
+  input:focus { border-color: #38bdf8; }
+  input.invalid { border-color: #f87171; }
+
+  .error {
+    color: #f87171;
+    font-size: .8rem;
+    height: 1rem;
+    margin-top: .35rem;
+  }
+
+  .result {
+    margin-top: 1.5rem;
+    background: #0f172a;
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+  }
+  .result .label {
+    font-size: .75rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .result .value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    color: #38bdf8;
+    letter-spacing: 1px;
+    word-break: break-all;
+    line-height: 1.3;
+  }
+  .result .value.empty { color: #475569; }
+
+  .meta {
+    margin-top: .5rem;
+    font-size: .75rem;
+    color: #64748b;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1>Decimal → Binary</h1>
+
+  <label for="decimalInput">Decimal number</label>
+  <input
+    id="decimalInput"
+    type="text"
+    inputmode="numeric"
+    placeholder="e.g. 11"
+    autocomplete="off"
+    spellcheck="false"
+  >
+  <div class="error" id="error"></div>
+
+  <div class="result">
+    <div class="label">Binary</div>
+    <div class="value empty" id="output">—</div>
+    <div class="meta" id="meta"></div>
+  </div>
+</div>
+
+<script>
+  const input  = document.getElementById('decimalInput');
+  const output = document.getElementById('output');
+  const error  = document.getElementById('error');
+  const meta   = document.getElementById('meta');
+
+  function decimalToBinary(decStr) {
+    let n = BigInt(decStr);
+    if (n === 0n) return '0';
+
+    let bits = '';
+    while (n > 0n) {
+      bits = (n % 2n).toString() + bits; // prepend remainder
+      n = n / 2n;                        // integer division by 2
+    }
+    return bits;
+  }
+
+  // group into nibbles: "10111011" -> "1011 1011"
+  function groupBits(bits) {
+    return bits.replace(/\B(?=(\d{4})+$)/g, ' ');
+  }
+
+  function convert() {
+    const value = input.value.trim();
+
+    if (value === '') {
+      input.classList.remove('invalid');
+      error.textContent = '';
+      meta.textContent = '';
+      output.textContent = '—';
+      output.classList.add('empty');
+      return;
+    }
+
+    // only digits allowed
+    if (!/^\d+$/.test(value)) {
+      input.classList.add('invalid');
+      error.textContent = 'Only digits 0–9 are allowed.';
+      meta.textContent = '';
+      output.textContent = '—';
+      output.classList.add('empty');
+      return;
+    }
+
+    const bits = decimalToBinary(value);
+
+    input.classList.remove('invalid');
+    error.textContent = '';
+    output.textContent = groupBits(bits);
+    output.classList.remove('empty');
+    meta.textContent = `${bits.length} bit${bits.length === 1 ? '' : 's'}`;
+  }
+
+  input.addEventListener('input', convert);
+  input.focus();
+</script>
+
+</body>
+</html>
+
